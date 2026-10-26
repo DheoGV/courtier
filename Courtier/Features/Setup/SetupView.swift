@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// "Atur Turnamen": players (no limit), format, scoring, courts & rounds, then generate the schedule.
+/// "Set Up Tournament": players (no limit), format, scoring, courts & rounds, then generate the schedule.
 struct SetupView: View {
     @Environment(SessionStore.self) private var store
     @Environment(AppRouter.self) private var router
@@ -24,7 +24,7 @@ struct SetupView: View {
                 Button {
                     if store.session == nil { start() } else { confirmReplace = true }
                 } label: {
-                    Label("Generate Jadwal", systemImage: "shuffle")
+                    Label(tr("Generate Schedule", "Generate Jadwal"), systemImage: "shuffle")
                 }
                 .buttonStyle(.primary)
                 .disabled(!store.config.canStart)
@@ -42,8 +42,9 @@ struct SetupView: View {
         .tabBarClearance()
         .statusBarScrim()
         .sheet(isPresented: $showPaste) { PastePlayersSheet() }
-        .confirmationDialog("Sesi yang berjalan akan diganti.", isPresented: $confirmReplace, titleVisibility: .visible) {
-            Button("Mulai sesi baru", role: .destructive, action: start)
+        .confirmationDialog(tr("The current session will be replaced.", "Sesi yang berjalan akan diganti."),
+                            isPresented: $confirmReplace, titleVisibility: .visible) {
+            Button(tr("Start new session", "Mulai sesi baru"), role: .destructive, action: start)
         }
     }
 
@@ -54,18 +55,22 @@ struct SetupView: View {
 
     private var minimumNote: String {
         store.config.format == .fixedPartner
-            ? "Butuh minimal 4 pemain (2 tim) untuk satu lapangan."
-            : "Butuh minimal 4 pemain untuk satu lapangan."
+            ? tr("Needs at least 4 players (2 teams) for one court.", "Butuh minimal 4 pemain (2 tim) untuk satu lapangan.")
+            : tr("Needs at least 4 players for one court.", "Butuh minimal 4 pemain untuk satu lapangan.")
     }
 
     // MARK: Sections
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 14) {
-            BrandRow()
+            HStack {
+                BrandRow()
+                Spacer()
+                LanguageToggle()
+            }
             VStack(alignment: .leading, spacing: 6) {
-                Eyebrow(text: "Sesi baru · \(Date.now.formatted(.dateTime.weekday(.wide).locale(Locale(identifier: "id_ID"))))")
-                Text("Atur Turnamen")
+                Eyebrow(text: tr("New session", "Sesi baru") + " · \(Date.now.formatted(.dateTime.weekday(.wide).locale(AppLanguage.current.locale)))")
+                Text(tr("Set Up Tournament", "Atur Turnamen"))
                     .font(.screenTitle)
                     .foregroundStyle(.ink)
             }
@@ -79,9 +84,10 @@ struct SetupView: View {
                     .font(.system(size: 26))
                     .foregroundStyle(.heroAccent)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Sesi berjalan · \(session.format.title)")
+                    Text(tr("Session in progress", "Sesi berjalan") + " · \(session.format.title)")
                         .font(.jost(15, .semibold))
-                    Text("Babak \((session.currentRoundIndex ?? 0) + 1) dari \(session.plannedRounds) · \(session.players.count) pemain")
+                    Text(tr("Round \((session.currentRoundIndex ?? 0) + 1) of \(session.plannedRounds) · \(session.players.count) players",
+                            "Babak \((session.currentRoundIndex ?? 0) + 1) dari \(session.plannedRounds) · \(session.players.count) pemain"))
                         .font(.caption)
                         .foregroundStyle(.heroMuted)
                 }
@@ -99,9 +105,9 @@ struct SetupView: View {
     private var players: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Pemain").font(.sectionTitle).foregroundStyle(.ink)
+                Text(tr("Players", "Pemain")).font(.sectionTitle).foregroundStyle(.ink)
                 Spacer()
-                Text("\(store.config.players.count) pemain · tanpa batas")
+                Text(tr("\(store.config.players.count) players · no limit", "\(store.config.players.count) pemain · tanpa batas"))
                     .font(.caption)
                     .foregroundStyle(.inkMuted)
             }
@@ -109,7 +115,7 @@ struct SetupView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "person.badge.plus")
                         .foregroundStyle(.inkMuted)
-                    TextField("Ketik nama, Enter untuk tambah", text: $name)
+                    TextField(tr("Type a name, Return to add", "Ketik nama, Enter untuk tambah"), text: $name)
                         .font(.body)
                         .foregroundStyle(.ink)
                         .focused($nameFocused)
@@ -131,7 +137,7 @@ struct SetupView: View {
                         .background(.racing, in: RoundedRectangle(cornerRadius: Radius.md))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Tambah pemain")
+                .accessibilityLabel(tr("Add player", "Tambah pemain"))
             }
 
             if !store.config.players.isEmpty {
@@ -146,12 +152,12 @@ struct SetupView: View {
 
             HStack {
                 Button { showPaste = true } label: {
-                    Label("Tempel daftar nama", systemImage: "list.clipboard")
+                    Label(tr("Paste a list", "Tempel daftar nama"), systemImage: "list.clipboard")
                 }
                 Spacer()
                 if store.config.players.count > 1 {
                     Button { withAnimation(.snappy) { store.shufflePlayers() } } label: {
-                        Label("Acak urutan", systemImage: "shuffle")
+                        Label(tr("Shuffle order", "Acak urutan"), systemImage: "shuffle")
                     }
                 }
             }
@@ -167,10 +173,10 @@ struct SetupView: View {
 
     private var teamsPreview: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Eyebrow(text: "Tim (berurutan, ubah dengan acak urutan)")
+            Eyebrow(text: tr("Teams (in order, change with shuffle)", "Tim (berurutan, ubah dengan acak urutan)"))
             ForEach(Array(store.config.teams.enumerated()), id: \.offset) { index, team in
                 HStack {
-                    Text("Tim \(index + 1)")
+                    Text(tr("Team \(index + 1)", "Tim \(index + 1)"))
                         .font(.jost(12, .semibold))
                         .foregroundStyle(.brassInk)
                         .frame(width: 48, alignment: .leading)
@@ -180,7 +186,7 @@ struct SetupView: View {
                 }
             }
             if store.config.players.count % 2 == 1, let last = store.config.players.last {
-                Text("\(last.name) belum punya partner.")
+                Text(tr("\(last.name) has no partner yet.", "\(last.name) belum punya partner."))
                     .font(.caption)
                     .foregroundStyle(.loss)
             }
@@ -192,7 +198,7 @@ struct SetupView: View {
 
     private var format: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Format Main").font(.sectionTitle).foregroundStyle(.ink)
+            Text(tr("Format", "Format Main")).font(.sectionTitle).foregroundStyle(.ink)
             ForEach(Format.allCases) { option in
                 Button {
                     withAnimation(.snappy) { store.config.format = option }
@@ -226,7 +232,7 @@ struct SetupView: View {
 
     private var scoring: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Sistem Poin").font(.sectionTitle).foregroundStyle(.ink)
+            Text(tr("Scoring", "Sistem Poin")).font(.sectionTitle).foregroundStyle(.ink)
             Segmented(options: [ScoringKind.rally11, .rally21, .tennis], selection: scoringKind) {
                 switch $0 {
                 case .rally11: "Rally 11"
@@ -241,24 +247,26 @@ struct SetupView: View {
             switch store.config.scoring {
             case .rally(let target, let deuce):
                 Toggle(isOn: Binding { deuce } set: { store.config.scoring = .rally(target: target, deuce: $0) }) {
-                    settingLabel("Deuce", "Harus menang selisih 2 poin")
+                    settingLabel("Deuce", tr("Win by 2 points", "Harus menang selisih 2 poin"))
                 }
                 .tint(.racing)
             case .tennisRace(let games, let golden):
                 HStack {
-                    settingLabel("Race to", "Menang \(games) game = menang match")
+                    settingLabel("Race to", tr("First to \(games) games wins the match", "Menang \(games) game = menang match"))
                     Spacer()
                     ValueStepper(value: Binding { games } set: { store.config.scoring = .tennisRace(games: $0, goldenPoint: golden) },
                                  range: 1...9, label: "Race to")
                 }
                 Toggle(isOn: Binding { golden } set: { store.config.scoring = .tennisRace(games: games, goldenPoint: $0) }) {
-                    settingLabel("Golden point", "40–40: satu poin penentu (tanpa advantage)")
+                    settingLabel("Golden point", tr("40–40: one deciding point (no advantage)", "40–40: satu poin penentu (tanpa advantage)"))
                 }
                 .tint(.racing)
             }
 
             HStack {
-                settingLabel("Urutan klasemen", store.config.ranking == .wins ? "Menang → selisih → head-to-head" : "Total poin → menang → selisih")
+                settingLabel(tr("Ranking", "Urutan klasemen"), store.config.ranking == .wins
+                    ? tr("Wins → difference → head-to-head", "Menang → selisih → head-to-head")
+                    : tr("Total points → wins → difference", "Total poin → menang → selisih"))
                 Spacer()
             }
             Segmented(options: RankingMode.allCases, selection: Bindable(store).config.ranking) { $0.title }
@@ -268,21 +276,23 @@ struct SetupView: View {
     private var courtsAndRounds: some View {
         @Bindable var store = store
         return VStack(alignment: .leading, spacing: 14) {
-            Text("Lapangan & Babak").font(.sectionTitle).foregroundStyle(.ink)
+            Text(tr("Courts & Rounds", "Lapangan & Babak")).font(.sectionTitle).foregroundStyle(.ink)
             HStack {
-                settingLabel("Lapangan", "\(store.config.format.unitsPerCourt == 4 ? "4 pemain" : "2 tim") per lapangan")
+                settingLabel(tr("Courts", "Lapangan"), store.config.format.unitsPerCourt == 4
+                    ? tr("4 players per court", "4 pemain per lapangan")
+                    : tr("2 teams per court", "2 tim per lapangan"))
                 Spacer()
-                ValueStepper(value: $store.config.courts, range: 1...20, label: "Lapangan")
+                ValueStepper(value: $store.config.courts, range: 1...20, label: tr("Courts", "Lapangan"))
             }
             HStack {
-                settingLabel("Jumlah babak", "Bebas, bisa ditambah saat main")
+                settingLabel(tr("Rounds", "Jumlah babak"), tr("No limit, add more while playing", "Bebas, bisa ditambah saat main"))
                 Spacer()
-                ValueStepper(value: $store.config.rounds, range: 1...99, label: "Jumlah babak")
+                ValueStepper(value: $store.config.rounds, range: 1...99, label: tr("Rounds", "Jumlah babak"))
             }
             HStack {
-                settingLabel("Menit per game", "Rata-rata durasi satu pertandingan")
+                settingLabel(tr("Minutes per match", "Menit per game"), tr("Average length of one match", "Rata-rata durasi satu pertandingan"))
                 Spacer()
-                ValueStepper(value: $store.config.minutesPerMatch, range: 3...60, label: "Menit per game")
+                ValueStepper(value: $store.config.minutesPerMatch, range: 3...60, label: tr("Minutes per match", "Menit per game"))
             }
             estimate
         }
@@ -297,10 +307,12 @@ struct SetupView: View {
                 .font(.system(size: 20))
                 .foregroundStyle(.brassInk)
             VStack(alignment: .leading, spacing: 2) {
-                Text("± \(minutes) menit · selesai \(end.formatted(date: .omitted, time: .shortened))")
+                Text(tr("± \(minutes) min · ends \(end.formatted(date: .omitted, time: .shortened))",
+                        "± \(minutes) menit · selesai \(end.formatted(date: .omitted, time: .shortened))"))
                     .font(.playfair(17, .medium))
                     .foregroundStyle(.ink)
-                Text("\(store.config.rounds) babak × \(store.config.minutesPerMatch) mnt · \(store.config.activeCourts) lapangan aktif · \(resting) istirahat/babak")
+                Text(tr("\(store.config.rounds) rounds × \(store.config.minutesPerMatch) min · \(store.config.activeCourts) courts in use · \(resting) resting/round",
+                        "\(store.config.rounds) babak × \(store.config.minutesPerMatch) mnt · \(store.config.activeCourts) lapangan aktif · \(resting) istirahat/babak"))
                     .font(.caption)
                     .foregroundStyle(.inkMuted)
             }
@@ -334,7 +346,7 @@ struct PastePlayersSheet: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Satu nama per baris. Nomor urut dan koma otomatis dibersihkan.")
+                Text(tr("One name per line. Numbers and commas are cleaned up.", "Satu nama per baris. Nomor urut dan koma otomatis dibersihkan."))
                     .font(.caption)
                     .foregroundStyle(.inkMuted)
                 TextEditor(text: $text)
@@ -349,12 +361,12 @@ struct PastePlayersSheet: View {
             }
             .padding(Space.gutter)
             .background(.appBackground)
-            .navigationTitle("Tempel daftar")
+            .navigationTitle(tr("Paste a list", "Tempel daftar"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Batal") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button(tr("Cancel", "Batal")) { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Tambah") {
+                    Button(tr("Add", "Tambah")) {
                         store.addPlayers(from: text)
                         dismiss()
                     }

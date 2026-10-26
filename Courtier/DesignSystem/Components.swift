@@ -83,7 +83,7 @@ struct PlayerChip: View {
                         .frame(width: 18, height: 18)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Hapus \(player.name)")
+                .accessibilityLabel(tr("Remove \(player.name)", "Hapus \(player.name)"))
             }
         }
         .padding(.leading, 6)
@@ -226,9 +226,9 @@ struct StatusPill: View {
 
     private var label: String {
         switch match.status {
-        case .pending: "Belum mulai"
-        case .live: "Berlangsung"
-        case .done: "Selesai"
+        case .pending: tr("Not started", "Belum mulai")
+        case .live: tr("In play", "Berlangsung")
+        case .done: tr("Final", "Selesai")
         }
     }
 
@@ -248,7 +248,7 @@ struct MatchCard: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Eyebrow(text: "Lapangan \(match.court)")
+                Eyebrow(text: tr("Court \(match.court)", "Lapangan \(match.court)"))
                 Spacer()
                 StatusPill(match: match)
             }
@@ -320,7 +320,8 @@ struct LeaderboardRow: View {
 
     private var meta: String {
         let diff = standing.diff > 0 ? "+\(standing.diff)" : standing.diff < 0 ? "−\(-standing.diff)" : "0"
-        return "\(standing.played) main · \(standing.won)M \(standing.lost)K · selisih \(diff) \(unit)"
+        return tr("\(standing.played) played · \(standing.won)W \(standing.lost)L · diff \(diff) \(unit)",
+                  "\(standing.played) main · \(standing.won)M \(standing.lost)K · selisih \(diff) \(unit)")
     }
 }
 

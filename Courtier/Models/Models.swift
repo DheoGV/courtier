@@ -29,15 +29,21 @@ enum Format: String, Codable, CaseIterable, Identifiable, Sendable {
         switch self {
         case .americano: "Americano"
         case .mexicano: "Mexicano"
-        case .fixedPartner: "Fix Partner"
+        case .fixedPartner: tr("Fixed Partner", "Fix Partner")
         }
     }
 
     var summary: String {
         switch self {
-        case .americano: "Partner & lawan diacak tiap babak. Klasemen per individu."
-        case .mexicano: "Babak 1 acak, berikutnya dipasangkan sesuai klasemen (1+4 vs 2+3)."
-        case .fixedPartner: "Tim tetap sepanjang sesi, lawan dirotasi. Klasemen per tim."
+        case .americano:
+            tr("New partner and opponents every round. Ranked per player.",
+               "Partner & lawan diacak tiap babak. Klasemen per individu.")
+        case .mexicano:
+            tr("Round 1 is random, then courts are set from the standings (1+4 vs 2+3).",
+               "Babak 1 acak, berikutnya dipasangkan sesuai klasemen (1+4 vs 2+3).")
+        case .fixedPartner:
+            tr("Same teams all session, opponents rotate. Ranked per team.",
+               "Tim tetap sepanjang sesi, lawan dirotasi. Klasemen per tim.")
         }
     }
 
@@ -64,8 +70,8 @@ enum RankingMode: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var title: String {
         switch self {
-        case .wins: "Menang"
-        case .totalPoints: "Total poin"
+        case .wins: tr("Wins", "Menang")
+        case .totalPoints: tr("Total points", "Total poin")
         }
     }
 }

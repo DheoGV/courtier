@@ -28,8 +28,10 @@ struct ScoreView: View {
             .tabBarClearance()
             .statusBarScrim()
         } else {
-            EmptyState(title: "Tidak ada pertandingan", note: "Buat jadwal dulu di tab Sesi, lalu pilih lapangan untuk diisi skornya.",
-                       action: ("Ke Jadwal", { router.tab = store.session == nil ? .setup : .schedule }))
+            EmptyState(title: tr("No matches", "Tidak ada pertandingan"),
+                       note: tr("Build a schedule in the Session tab, then pick a court to score.",
+                                "Buat jadwal dulu di tab Sesi, lalu pilih lapangan untuk diisi skornya."),
+                       action: (tr("Go to Schedule", "Ke Jadwal"), { router.tab = store.session == nil ? .setup : .schedule }))
         }
     }
 
@@ -64,11 +66,11 @@ struct ScoreView: View {
                     .foregroundStyle(.ink)
                     .frame(width: 40, height: 40)
             }
-            .accessibilityLabel("Kembali ke jadwal")
+            .accessibilityLabel(tr("Back to schedule", "Kembali ke jadwal"))
             Spacer()
             VStack(spacing: 2) {
-                Text("Lapangan \(match.court)").font(.jost(16, .semibold)).foregroundStyle(.ink)
-                Text("Babak \(round.number) · \(session.scoring.label)").font(.caption).foregroundStyle(.inkMuted)
+                Text(tr("Court \(match.court)", "Lapangan \(match.court)")).font(.jost(16, .semibold)).foregroundStyle(.ink)
+                Text(tr("Round \(round.number)", "Babak \(round.number)") + " · \(session.scoring.label)").font(.caption).foregroundStyle(.inkMuted)
             }
             Spacer()
             Color.clear.frame(width: 40, height: 40)
@@ -84,7 +86,7 @@ struct ScoreView: View {
                     Button { router.scoringMatch = m.id } label: {
                         HStack(spacing: 6) {
                             if m.status == .done { Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)) }
-                            Text("Lap. \(m.court)")
+                            Text(tr("Court \(m.court)", "Lap. \(m.court)"))
                         }
                         .font(.jost(12, .semibold))
                         .foregroundStyle(on ? .onRacing : .ink)
@@ -139,7 +141,7 @@ struct RallyScorer: View {
                 Button(action: undo) { Label("Undo", systemImage: "arrow.uturn.backward") }
                     .buttonStyle(.ghost)
                     .disabled(history.isEmpty)
-                Button(action: save) { Label("Simpan Hasil", systemImage: "checkmark") }
+                Button(action: save) { Label(tr("Save Result", "Simpan Hasil"), systemImage: "checkmark") }
                     .buttonStyle(.primary)
             }
         }
@@ -147,7 +149,7 @@ struct RallyScorer: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Selesai") { focused = nil }
+                Button(tr("Done", "Selesai")) { focused = nil }
                     .font(.jost(15, .semibold))
             }
         }
@@ -157,7 +159,7 @@ struct RallyScorer: View {
         let score = side == .a ? a : b
         let lead = score > (side == .a ? b : a)
         return VStack(spacing: 14) {
-            Eyebrow(text: "Tim \(side.rawValue.uppercased())", color: lead ? .heroMuted : .inkMuted)
+            Eyebrow(text: tr("Team", "Tim") + " \(side.rawValue.uppercased())", color: lead ? .heroMuted : .inkMuted)
             Text(session.names(match.team(side)))
                 .font(.jost(14, .semibold))
                 .foregroundStyle(lead ? .onRacing : .ink)
@@ -177,14 +179,14 @@ struct RallyScorer: View {
                         .background(lead ? Color.white.opacity(0.1) : .surface2, in: RoundedRectangle(cornerRadius: Radius.md))
                 }
                 .disabled(score == 0)
-                .accessibilityLabel("Kurangi poin tim \(side.rawValue.uppercased())")
+                .accessibilityLabel(tr("Remove a point from team", "Kurangi poin tim") + " \(side.rawValue.uppercased())")
                 Button { change(side, 1) } label: {
                     Image(systemName: "plus").frame(maxWidth: .infinity, minHeight: 52)
                         .background(lead ? Color.heroAccent : .racing, in: RoundedRectangle(cornerRadius: Radius.md))
                         .foregroundStyle(lead ? .racing : .onRacing)
                 }
                 .disabled(!scoring.canScore(a, b))
-                .accessibilityLabel("Tambah poin tim \(side.rawValue.uppercased())")
+                .accessibilityLabel(tr("Add a point for team", "Tambah poin tim") + " \(side.rawValue.uppercased())")
             }
             .font(.system(size: 20, weight: .semibold))
             .foregroundStyle(lead ? .onRacing : .ink)
@@ -213,15 +215,17 @@ struct RallyScorer: View {
     }
 
     private var bannerText: String? {
-        if scoring.isValidFinal(a, b) { return "SELESAI · Tim \(a > b ? "A" : "B") menang \(max(a, b))–\(min(a, b))" }
-        if scoring.isDecider(a, b) { return "POIN PENENTU · siapa pun yang dapat, menang" }
-        if let side = scoring.matchPoint(a, b) { return "GAME POINT · Tim \(side.rawValue.uppercased()) butuh 1 poin" }
+        if scoring.isValidFinal(a, b) { return tr("FINAL · Team \(a > b ? "A" : "B") wins \(max(a, b))–\(min(a, b))",
+                                                      "SELESAI · Tim \(a > b ? "A" : "B") menang \(max(a, b))–\(min(a, b))") }
+        if scoring.isDecider(a, b) { return tr("DECIDING POINT · next point wins", "POIN PENENTU · siapa pun yang dapat, menang") }
+        if let side = scoring.matchPoint(a, b) { return tr("GAME POINT · Team \(side.rawValue.uppercased()) needs 1 point",
+                                                              "GAME POINT · Tim \(side.rawValue.uppercased()) butuh 1 poin") }
         return nil
     }
 
     private var quickInput: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Atau ketik skor akhir langsung").font(.jost(14, .semibold)).foregroundStyle(.ink)
+            Text(tr("Or type the final score", "Atau ketik skor akhir langsung")).font(.jost(14, .semibold)).foregroundStyle(.ink)
             HStack(spacing: 12) {
                 field(.a)
                 Text("–").font(.playfair(24)).foregroundStyle(.inkMuted)
@@ -256,7 +260,7 @@ struct RallyScorer: View {
         .frame(maxWidth: .infinity, minHeight: 56)
         .background(.surface, in: RoundedRectangle(cornerRadius: Radius.md))
         .overlay(RoundedRectangle(cornerRadius: Radius.md).strokeBorder(focused == side ? Color.racing : .line, lineWidth: 1))
-        .accessibilityLabel("Skor tim \(side.rawValue.uppercased())")
+        .accessibilityLabel(tr("Team score", "Skor tim") + " \(side.rawValue.uppercased())")
     }
 
     private func change(_ side: Side, _ delta: Int) {
@@ -279,7 +283,8 @@ struct RallyScorer: View {
         if store.finish(match.id, a: a, b: b) {
             onSaved()
         } else {
-            error = "Skor \(a)–\(b) belum sah untuk \(scoring.hint.lowercased())."
+            error = tr("\(a)–\(b) isn't a valid final for \(scoring.hint.lowercased()).",
+                       "Skor \(a)–\(b) belum sah untuk \(scoring.hint.lowercased()).")
         }
     }
 }
@@ -314,7 +319,8 @@ struct TennisScorer: View {
     var body: some View {
         VStack(spacing: 20) {
             HStack(spacing: 6) {
-                ForEach(["Race to \(games)", golden ? "Golden point" : "Advantage", "Maks \(games * 2 - 1) game"], id: \.self) {
+                ForEach(["Race to \(games)", golden ? "Golden point" : "Advantage",
+                         tr("Max \(games * 2 - 1) games", "Maks \(games * 2 - 1) game")], id: \.self) {
                     Text($0)
                         .font(.jost(12, .semibold))
                         .foregroundStyle(.ink)
@@ -333,7 +339,7 @@ struct TennisScorer: View {
                 Button(action: undo) { Label("Undo", systemImage: "arrow.uturn.backward") }
                     .buttonStyle(.ghost)
                     .disabled(history.isEmpty)
-                Button(action: save) { Label("Simpan Hasil", systemImage: "checkmark") }
+                Button(action: save) { Label(tr("Save Result", "Simpan Hasil"), systemImage: "checkmark") }
                     .buttonStyle(.primary)
                     .disabled(!finished)
             }
@@ -343,9 +349,9 @@ struct TennisScorer: View {
     private var scoreboard: some View {
         VStack(spacing: 0) {
             HStack {
-                Eyebrow(text: "Tim", color: .heroMuted).frame(maxWidth: .infinity, alignment: .leading)
-                Eyebrow(text: "Game", color: .heroMuted).frame(width: 56)
-                Eyebrow(text: "Poin", color: .heroMuted).frame(width: 64)
+                Eyebrow(text: tr("Team", "Tim"), color: .heroMuted).frame(maxWidth: .infinity, alignment: .leading)
+                Eyebrow(text: tr("Games", "Game"), color: .heroMuted).frame(width: 56)
+                Eyebrow(text: tr("Points", "Poin"), color: .heroMuted).frame(width: 64)
             }
             .padding(.bottom, 6)
             row(.a)
@@ -384,7 +390,7 @@ struct TennisScorer: View {
     private var gameLog: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(finished ? "Hasil" : "Game \(min(gA + gB + 1, games * 2 - 1))").font(.jost(13, .semibold)).foregroundStyle(.ink)
+                Text(finished ? tr("Result", "Hasil") : "Game \(min(gA + gB + 1, games * 2 - 1))").font(.jost(13, .semibold)).foregroundStyle(.ink)
                 Spacer()
                 if let text = status {
                     Text(text).font(.jost(13, .semibold)).foregroundStyle(.brassInk)
@@ -407,9 +413,9 @@ struct TennisScorer: View {
 
     private var status: String? {
         let scoring = session.scoring
-        if finished { return "Selesai · \(max(gA, gB))–\(min(gA, gB))" }
-        if scoring.isDecider(gA, gB) { return "Game penentu" }
-        if let side = scoring.matchPoint(gA, gB) { return "Match point Tim \(side.rawValue.uppercased())" }
+        if finished { return tr("Final", "Selesai") + " · \(max(gA, gB))–\(min(gA, gB))" }
+        if scoring.isDecider(gA, gB) { return tr("Deciding game", "Game penentu") }
+        if let side = scoring.matchPoint(gA, gB) { return tr("Match point Team", "Match point Tim") + " \(side.rawValue.uppercased())" }
         return nil
     }
 
@@ -418,7 +424,7 @@ struct TennisScorer: View {
         return Button { point(side) } label: {
             VStack(spacing: 6) {
                 Image(systemName: "plus").font(.system(size: 24, weight: .semibold))
-                Text("Poin Tim \(side.rawValue.uppercased())").font(.jost(15, .semibold))
+                Text(tr("Point Team", "Poin Tim") + " \(side.rawValue.uppercased())").font(.jost(15, .semibold))
                 Text(session.names(match.team(side))).font(.jost(11)).opacity(0.75).lineLimit(1)
             }
             .foregroundStyle(primary ? .onRacing : .ink)
@@ -435,10 +441,10 @@ struct TennisScorer: View {
 
     private var quickResults: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Atau tap hasil akhir").font(.jost(13, .semibold)).foregroundStyle(.inkMuted)
+            Text(tr("Or tap the final result", "Atau tap hasil akhir")).font(.jost(13, .semibold)).foregroundStyle(.inkMuted)
             ForEach([Side.a, .b], id: \.self) { side in
                 HStack(spacing: 8) {
-                    Text("Tim \(side.rawValue.uppercased())")
+                    Text(tr("Team", "Tim") + " \(side.rawValue.uppercased())")
                         .font(.jost(12, .semibold))
                         .foregroundStyle(.inkMuted)
                         .frame(width: 44, alignment: .leading)

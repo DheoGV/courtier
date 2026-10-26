@@ -46,6 +46,10 @@ design/
 
 Rounds are unlimited: "Tambah babak" adds one at any time.
 
+## Language
+
+English by default, with an EN | ID switch at the top of the Session tab (stored in `UserDefaults` under `appLanguage`, independent of the iPhone's language). Copy is written inline as `tr("English", "Indonesia")` pairs (`Models/Language.swift`); the root view rebuilds its content when the language changes. The splash is always English.
+
 ## Fonts
 
 Bundled in `Courtier/Resources/Fonts/` from [google/fonts](https://github.com/google/fonts) under the SIL Open Font License (licence files alongside): Playfair Display (titles, scores), Jost (UI) and Marcellus (wordmark). Playfair Display and Jost are variable fonts; `Typography.swift` sets their weight on the `wght` axis and turns on lining figures for Playfair so score digits sit on the baseline. If a font file is missing, the app falls back to New York / SF Pro.

@@ -30,10 +30,13 @@ enum Scoring: Codable, Hashable, Sendable {
 
     var hint: String {
         switch self {
-        case .rally(let target, true): "Race to \(target) · deuce selisih 2, maks \(Self.cap(for: target))"
-        case .rally(let target, false): "Race to \(target) · tanpa deuce"
+        case .rally(let target, true):
+            tr("Race to \(target) · win by 2, max \(Self.cap(for: target))",
+               "Race to \(target) · deuce selisih 2, maks \(Self.cap(for: target))")
+        case .rally(let target, false): tr("Race to \(target) · no deuce", "Race to \(target) · tanpa deuce")
         case .tennisRace(let games, let golden):
-            "Menang \(games) game = menang match · \(golden ? "golden point" : "advantage")"
+            tr("First to \(games) games wins · \(golden ? "golden point" : "advantage")",
+               "Menang \(games) game = menang match · \(golden ? "golden point" : "advantage")")
         }
     }
 

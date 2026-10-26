@@ -3,22 +3,28 @@ import SwiftUI
 struct RootView: View {
     @Environment(SessionStore.self) private var store
     @State private var router = AppRouter()
-    /// The tab bar steps aside while typing, otherwise it rides up with the keyboard and covers "Simpan Hasil".
+    /// The tab bar steps aside while typing, otherwise it rides up with the keyboard and covers "Save Result".
     @State private var keyboardShown = false
+    /// Copy is picked with `tr(_:_:)` at render time, so switching language rebuilds the content.
+    @AppStorage(AppLanguage.storageKey) private var language = AppLanguage.en.rawValue
 
     var body: some View {
         ZStack {
             Color.appBackground.ignoresSafeArea()
-            switch router.tab {
-            case .setup: SetupView()
-            case .schedule: ScheduleView()
-            case .score: ScoreView()
-            case .leaderboard: LeaderboardView()
+            Group {
+                switch router.tab {
+                case .setup: SetupView()
+                case .schedule: ScheduleView()
+                case .score: ScoreView()
+                case .leaderboard: LeaderboardView()
+                }
             }
+            .id(language)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if !keyboardShown {
                 TabBar(selection: Bindable(router).tab)
+                    .id(language)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 4)
                     // Fades scrolled content out under the bar and the home indicator.

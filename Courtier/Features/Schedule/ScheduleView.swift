@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// "Babak 3 / 8": round progress, one card per court, who rests, and the next action.
+/// "Round 3 / 8": round progress, one card per court, who rests, and the next action.
 struct ScheduleView: View {
     @Environment(SessionStore.self) private var store
     @Environment(AppRouter.self) private var router
@@ -10,8 +10,9 @@ struct ScheduleView: View {
         if let session = store.session {
             content(session)
         } else {
-            EmptyState(title: "Belum ada sesi", note: "Tambahkan pemain dan pilih format untuk membuat jadwal.",
-                       action: ("Atur Turnamen", { router.tab = .setup }))
+            EmptyState(title: tr("No session yet", "Belum ada sesi"),
+                       note: tr("Add players and pick a format to build the schedule.", "Tambahkan pemain dan pilih format untuk membuat jadwal."),
+                       action: (tr("Set Up Tournament", "Atur Turnamen"), { router.tab = .setup }))
         }
     }
 
@@ -71,9 +72,9 @@ struct ScheduleView: View {
         let remaining = max(session.plannedRounds - done, 0)
         let end = Date.now.addingTimeInterval(Double(remaining * session.minutesPerMatch) * 60)
         return VStack(alignment: .leading, spacing: 16) {
-            Eyebrow(text: "\(session.format.title) · \(session.scoring.label) · \(session.players.count) pemain", color: .heroMuted)
+            Eyebrow(text: "\(session.format.title) · \(session.scoring.label) · \(session.players.count) " + tr("players", "pemain"), color: .heroMuted)
             HStack(alignment: .lastTextBaseline) {
-                Text("Babak \(current + 1)")
+                Text(tr("Round \(current + 1)", "Babak \(current + 1)"))
                     .font(.playfair(40, .semibold))
                     .foregroundStyle(.onRacing)
                 Spacer()
@@ -89,11 +90,11 @@ struct ScheduleView: View {
                 }
             }
             HStack {
-                meta("square.grid.2x2", "\(session.activeCourts) lapangan")
+                meta("square.grid.2x2", tr("\(session.activeCourts) courts", "\(session.activeCourts) lapangan"))
                 Spacer()
-                meta("timer", "±\(session.minutesPerMatch) mnt/game")
+                meta("timer", tr("±\(session.minutesPerMatch) min/match", "±\(session.minutesPerMatch) mnt/game"))
                 Spacer()
-                meta("flag", "Selesai ±\(end.formatted(date: .omitted, time: .shortened))")
+                meta("flag", tr("Ends", "Selesai") + " ±\(end.formatted(date: .omitted, time: .shortened))")
             }
         }
         .padding(.horizontal, Space.gutter)
@@ -138,10 +139,12 @@ struct ScheduleView: View {
                 .font(.system(size: 18))
                 .foregroundStyle(.inkMuted)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Istirahat: \(session.names(round.sitOut))")
+                Text(tr("Resting", "Istirahat") + ": \(session.names(round.sitOut))")
                     .font(.jost(14, .semibold))
                     .foregroundStyle(.ink)
-                Text(session.ranking == .totalPoints ? "Rotasi adil · dapat poin rata-rata babak ini" : "Rotasi adil · tidak dihitung menang/kalah")
+                Text(session.ranking == .totalPoints
+                     ? tr("Fair rotation · gets this round's average points", "Rotasi adil · dapat poin rata-rata babak ini")
+                     : tr("Fair rotation · not counted as a win or loss", "Rotasi adil · tidak dihitung menang/kalah"))
                     .font(.caption)
                     .foregroundStyle(.inkMuted)
             }
@@ -155,7 +158,7 @@ struct ScheduleView: View {
     private func actions(_ session: Session, _ round: Round) -> some View {
         if let next = round.matches.first(where: { $0.status != .done }) {
             Button { router.score(next.id) } label: {
-                Label("Input Skor Lapangan \(next.court)", systemImage: "pencil.line")
+                Label(tr("Enter Score · Court \(next.court)", "Input Skor Lapangan \(next.court)"), systemImage: "pencil.line")
             }
             .buttonStyle(.primary)
         } else if session.canGenerateNextRound {
@@ -163,12 +166,13 @@ struct ScheduleView: View {
                 store.generateNextRound()
                 selectedRound = nil
             } label: {
-                Label("Generate Babak \(session.rounds.count + 1) dari Klasemen", systemImage: "arrow.up.arrow.down")
+                Label(tr("Generate Round \(session.rounds.count + 1) from Standings", "Generate Babak \(session.rounds.count + 1) dari Klasemen"),
+                      systemImage: "arrow.up.arrow.down")
             }
             .buttonStyle(.primary)
         } else if round.id == session.rounds.last?.id {
             Button { router.tab = .leaderboard } label: {
-                Label("Lihat Klasemen", systemImage: "trophy")
+                Label(tr("View Standings", "Lihat Klasemen"), systemImage: "trophy")
             }
             .buttonStyle(.primary)
         }
@@ -176,7 +180,7 @@ struct ScheduleView: View {
         Button {
             store.addRound()
         } label: {
-            Label("Tambah babak", systemImage: "plus")
+            Label(tr("Add round", "Tambah babak"), systemImage: "plus")
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.ghost)

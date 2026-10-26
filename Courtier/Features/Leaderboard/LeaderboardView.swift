@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// "Klasemen": podium for the top three, then the rest, ordered by the session's ranking rule.
+/// "Standings": podium for the top three, then the rest, ordered by the session's ranking rule.
 struct LeaderboardView: View {
     @Environment(SessionStore.self) private var store
     @Environment(AppRouter.self) private var router
@@ -9,12 +9,14 @@ struct LeaderboardView: View {
         if let session = store.session {
             content(session, table: Standings.compute(session))
         } else {
-            EmptyState(title: "Klasemen kosong", note: "Klasemen muncul setelah sesi dimulai dan skor pertama disimpan.",
-                       action: ("Atur Turnamen", { router.tab = .setup }))
+            EmptyState(title: tr("No standings yet", "Klasemen kosong"),
+                       note: tr("Standings appear once a session starts and the first score is saved.",
+                                "Klasemen muncul setelah sesi dimulai dan skor pertama disimpan."),
+                       action: (tr("Set Up Tournament", "Atur Turnamen"), { router.tab = .setup }))
         }
     }
 
-    private func unit(_ session: Session) -> String { session.scoring.isTennis ? "game" : "poin" }
+    private func unit(_ session: Session) -> String { session.scoring.isTennis ? tr("games", "game") : tr("pts", "poin") }
 
     private func content(_ session: Session, table: [Standing]) -> some View {
         let done = session.rounds.filter(\.isComplete).count
@@ -23,8 +25,9 @@ struct LeaderboardView: View {
                 HStack(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 12) {
                         BrandRow()
-                        Eyebrow(text: "Setelah babak \(done) / \(session.plannedRounds) · \(session.scoring.label)")
-                        Text("Klasemen").font(.screenTitle).foregroundStyle(.ink)
+                        Eyebrow(text: tr("After round \(done) / \(session.plannedRounds)", "Setelah babak \(done) / \(session.plannedRounds)")
+                                + " · \(session.scoring.label)")
+                        Text(tr("Standings", "Klasemen")).font(.screenTitle).foregroundStyle(.ink)
                     }
                     Spacer()
                     ShareLink(item: shareText(session, table)) {
@@ -34,7 +37,7 @@ struct LeaderboardView: View {
                             .frame(width: 40, height: 40)
                             .background(.surface2, in: Circle())
                     }
-                    .accessibilityLabel("Bagikan klasemen")
+                    .accessibilityLabel(tr("Share standings", "Bagikan klasemen"))
                 }
 
                 if table.count >= 3 {
@@ -43,9 +46,9 @@ struct LeaderboardView: View {
 
                 VStack(spacing: 0) {
                     HStack {
-                        Eyebrow(text: session.format == .fixedPartner ? "Tim" : "Pemain")
+                        Eyebrow(text: session.format == .fixedPartner ? tr("Teams", "Tim") : tr("Players", "Pemain"))
                         Spacer()
-                        Eyebrow(text: session.ranking == .wins ? "Menang" : "Poin")
+                        Eyebrow(text: session.ranking == .wins ? tr("Wins", "Menang") : tr("Points", "Poin"))
                     }
                     .padding(.horizontal, 4)
                     .padding(.bottom, 8)
@@ -103,7 +106,7 @@ struct LeaderboardView: View {
                 .foregroundStyle(.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-            Text(mode == .wins ? "\(s.won) M · \(s.diff >= 0 ? "+" : "−")\(abs(s.diff))" : "\(s.totalPoints) pts")
+            Text(mode == .wins ? "\(s.won) \(tr("W", "M")) · \(s.diff >= 0 ? "+" : "−")\(abs(s.diff))" : "\(s.totalPoints) pts")
                 .font(.playfair(15, .medium))
                 .foregroundStyle(.inkMuted)
             Text("\(rank)")
@@ -119,15 +122,23 @@ struct LeaderboardView: View {
 
     private func rule(_ session: Session) -> String {
         switch session.ranking {
-        case .wins: "Urutan: jumlah menang → selisih \(unit(session)) → head-to-head → rasio menang. Total \(unit(session)) tidak dipakai."
-        case .totalPoints: "Urutan: total poin → jumlah menang → selisih poin → head-to-head. Pemain istirahat dapat poin rata-rata babak."
+        case .wins:
+            session.scoring.isTennis
+                ? tr("Order: wins → game difference → head-to-head → win rate. Total games are not used.",
+                     "Urutan: jumlah menang → selisih game → head-to-head → rasio menang. Total game tidak dipakai.")
+                : tr("Order: wins → point difference → head-to-head → win rate. Total points are not used.",
+                     "Urutan: jumlah menang → selisih poin → head-to-head → rasio menang. Total poin tidak dipakai.")
+        case .totalPoints:
+            tr("Order: total points → wins → point difference → head-to-head. Resting players get the round's average.",
+               "Urutan: total poin → jumlah menang → selisih poin → head-to-head. Pemain istirahat dapat poin rata-rata babak.")
         }
     }
 
     private func shareText(_ session: Session, _ table: [Standing]) -> String {
         let lines = table.enumerated().map { i, s in
-            "\(i + 1). \(s.name) — \(session.ranking == .wins ? "\(s.won) menang" : "\(s.totalPoints) poin"), selisih \(s.diff >= 0 ? "+" : "")\(s.diff)"
+            let headline = session.ranking == .wins ? tr("\(s.won) wins", "\(s.won) menang") : tr("\(s.totalPoints) pts", "\(s.totalPoints) poin")
+            return "\(i + 1). \(s.name) — \(headline), " + tr("diff", "selisih") + " \(s.diff >= 0 ? "+" : "")\(s.diff)"
         }
-        return (["👑 Klasemen Courtier · \(session.format.title) · \(session.scoring.label)"] + lines).joined(separator: "\n")
+        return (["👑 " + tr("Courtier Standings", "Klasemen Courtier") + " · \(session.format.title) · \(session.scoring.label)"] + lines).joined(separator: "\n")
     }
 }

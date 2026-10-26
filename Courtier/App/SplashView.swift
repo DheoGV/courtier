@@ -24,7 +24,8 @@ struct SplashView: View {
                     .font(.marcellus(38))
                     .tracking(8)
                     .foregroundStyle(.onRacing)
-                Text("Hormati permainan")
+                // The splash is always English, whatever the in-app language.
+                Text("Respect the game")
                     .font(.jost(14))
                     .foregroundStyle(.heroMuted)
             }

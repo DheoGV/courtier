@@ -5,10 +5,10 @@ enum AppTab: CaseIterable, Hashable {
 
     var title: String {
         switch self {
-        case .setup: "Sesi"
-        case .schedule: "Jadwal"
-        case .score: "Skor"
-        case .leaderboard: "Klasemen"
+        case .setup: tr("Session", "Sesi")
+        case .schedule: tr("Schedule", "Jadwal")
+        case .score: tr("Score", "Skor")
+        case .leaderboard: tr("Standings", "Klasemen")
         }
     }
 
